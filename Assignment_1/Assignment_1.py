@@ -7,7 +7,6 @@ Created on Fri Feb  8 13:49:33 2019
 import os
 import numpy as np
 import pandas as pd
-import numpy as np, pandas as pd
 import matplotlib.pyplot as plt
 import csv
 #from sklearn import tree, metrics
@@ -26,11 +25,24 @@ def entropy(data, member):
         entropy += -(fraction * np.log2(fraction))
     return entropy
     
-def test_split(index, value, dataset):
-	left, right = list(), list()
-	for row in dataset:
-		if row[index] < value:
-			left.append(row)
-		else:
-			right.append(row)
-	return left, right
+
+def information_Gain(data, attribute):
+    data_1 = data[data[attribute] == 1]
+    data_0 = data[data[attribute] == 0]
+    print(data_1)
+    print(data_0)
+    
+    
+    
+    
+    
+
+
+#def test_split(index, value, dataset):
+#	left, right = list(), list()
+#	for row in dataset:
+#		if row[index] < value:
+#			left.append(row)
+#		else:
+#			right.append(row)
+#	return left, right
