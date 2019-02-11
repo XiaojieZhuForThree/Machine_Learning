@@ -18,9 +18,17 @@ import csv
 binary = pd.read_csv(r'C:\Users\XXZ180012\Desktop\Assignment_1\training_set.csv')
 
 class decisionTree:
-    def __init__():
-        
-
+    def __init__(self, data):
+        self.data = data
+        self.spliter = None
+    def buildTree():
+        maxGain = 0;
+        for attribuite in list(data):
+            if information_Gain(data, attribute) > maxGain:
+                maxGain = information_Gain(data, attribute)
+                spliter = attribute
+        root = spliter
+        root.right, root.left = buildNode(data, spliter)
         
         
         
