@@ -17,6 +17,15 @@ import csv
 
 binary = pd.read_csv(r'C:\Users\XXZ180012\Desktop\Assignment_1\training_set.csv')
 
+class decisionTree:
+    def __init__():
+        
+
+        
+        
+        
+        
+
 def entropy(data):
     entropy = 0
     values = data["Class"].unique()
@@ -35,8 +44,10 @@ def information_Gain(data, attribute):
     return total_entropy
 
 
-def buildNode(data):
-    
+def buildNode(data, attribute):
+    subdata_1 = data[data[attribute] == 1]
+    subdata_0 = data[data[attribute] == 0]
+    return subdata_1, subdata_0
 
 #    print(data_1)
 #    print(data_0)
