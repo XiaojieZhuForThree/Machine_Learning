@@ -36,6 +36,16 @@ binary = pd.read_csv(r'C:\Users\XXZ180012\Desktop\Assignment_1\data_sets1\traini
 #        
 #        
 
+class ParentNode:
+    def __init__(self, name):
+        self.name = name
+        self.pos = None
+        self.neg = None
+
+class LeafNode:
+    def __init__(self, value):
+        self.value = value
+
 def entropy(data):
     entropy = 0
     values = data["Class"].unique()
@@ -99,6 +109,29 @@ def findSplit2(data, used):
             maxGain = attribute
     return maxGain
 
+def buildTree(data, used):
+    if len(data["Class"].unique()) == 1:
+        return LeafNode(data['Class'][0])
+    else: 
+        rootVal = findSplit(data, used)
+        if rootVal is not None:
+            used.add(rootVal)
+            leftSet, rightSet = buildNode(data, rootVal)
+            root = ParentNode(rootVal)
+            root.pos = buildTree(leftSet, set(used))
+            root.neg = buildTree(rightSet, set(used))
+            return root
+        return None
+def printTree(root, n = 0):
+    if (type(root) == LeafNode):
+        print(root.value)
+        return
+    else:
+        print("\n" + "| " * n + root.name +  " = 1: ", end = '')
+        printTree(root.pos, n+1)
+        print("\n" + "| " * n + root.name +  " = 0: ", end = '')
+        printTree(root.neg, n+1)
+        return
 def buildTree_1(data, used, n):
     if len(data["Class"].unique()) == 1:
         print(data["Class"].unique()[0], end = '')
