@@ -5,6 +5,7 @@ Created on Fri Feb  8 13:49:33 2019
 @author: XXZ180012
 """
 #import os
+import random
 import numpy as np
 import pandas as pd
 #import matplotlib.pyplot as plt
@@ -15,7 +16,7 @@ import pandas as pd
 #
 #variables = reader
 
-binary = pd.read_csv(r'C:\Users\zxj\Desktop\Assignment_1\training_set.csv')
+binary = pd.read_csv(r'C:\Users\XXZ180012\Desktop\Assignment_1\data_sets1\training_set.csv')
 
 #class decisionTree:
 #    def __init__(self, data):
@@ -129,6 +130,24 @@ def buildTree_2(data, used, n):
             buildTree_2(rightSet, set(used), n+1)
             return
         return
+
+def post_Pruning(decisionTree, L, K):
+    bestOne = decisionTree
+    for i in range(1, L + 1):
+        newTree = decisionTree
+        M = random.randint(1, K+1)
+        for j in range(1, M+1):
+            N = nonLeafNode(newTree)
+            P = random.randint(1, len(N)+1)
+            theOne = N[P-1]
+            if count(theOne, 0) > count(theOne, 1):
+                theOne = LeafNode(0)
+            else:
+                theOne = LeafNode(1)
+        if (accuracy(newTree) > accuracy(bestOne)):
+           bestOne = newTree
+    return bestOne
+
 initialSet1 = set(["Class"])   
 initialSet2 = set(['Class'])
 print("First Tree\n")
@@ -136,6 +155,11 @@ buildTree_1(binary, initialSet1, 0)
 print("\nSecond Tree")
 buildTree_2(binary, initialSet2, 0)
 binary[((binary["XK"] == 1) & (binary["XD"] == 1) & (binary["XS"] == 1) & (binary["XP"] == 1))]
+
+
+
+
+
 #    print(data_1)
 #    print(data_0)
     
