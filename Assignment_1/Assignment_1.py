@@ -105,7 +105,7 @@ def printTree(root, n = 0):
         print(root.value, end = '')
     elif (type(root) == None):
         print('None', end = "")
-    else:
+    elif (type(root) == TreeNode):
         print("\n" + "| " * n + root.name +  " = 1 : ", end = '')
         printTree(root.pos, n+1)
         print("\n" + "| " * n + root.name +  " = 0 : ", end = '')
