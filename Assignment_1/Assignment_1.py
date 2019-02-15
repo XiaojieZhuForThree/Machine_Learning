@@ -69,8 +69,36 @@ def buildNode(data, attribute):
     subdata_0 = data[data[attribute] == 0]
     return subdata_1, subdata_0
 
+def varImpurity(data):
+    part1 = 0
+    part2 = 0
+    values = data["Class"].unique()
+    if 0 in values :
+        part1 = data["Class"].value_counts()[0]/len(data)
+    if 1 in values:
+        part2 = data["Class"].value_counts()[1]/len(data)
+    return part1 * part2
 
-def buildTree(data, used, n):
+def impurityGain(data, attribute):
+    VI = varImpurity(data)
+    values = data[attribute].unique()
+    for value in values:
+        data_value = data[data[attribute] == value]
+        VI -= len(data_value)*varImpurity(data_value)/len(data)
+    return VI
+
+def findSplit2(data, used):
+    check = set(data) - used
+    maxGain = None
+    maxVal = 0
+    for attribute in check:
+        iG = impurityGain(data, attribute)
+        if iG > maxVal:
+            maxVal = iG
+            maxGain = attribute
+    return maxGain
+
+def buildTree_1(data, used, n):
     if len(data["Class"].unique()) == 1:
         print(data["Class"].unique()[0], end = '')
         return
@@ -80,22 +108,40 @@ def buildTree(data, used, n):
             used.add(rootVal)
             leftSet, rightSet = buildNode(data, rootVal)
             print("\n" + "| " * n + rootVal +  " = 1: ", end = '')
-            buildTree(leftSet, set(used), n+1)
+            buildTree_1(leftSet, set(used), n+1)
             print("\n" + "| " * n + rootVal + " = 0: ", end = '')
-            buildTree(rightSet, set(used), n+1)
+            buildTree_1(rightSet, set(used), n+1)
             return
         return
-
-initialSet = set(["Class"])   
-buildTree(binary, initialSet, 0)
-#binary[((binary["XJ"] == 0) & (binary["XO"] == 0) & (binary["XF"] == 0) & (binary["XQ"] == 0)
-#         & (binary["XU"] == 0) & (binary["XI"] == 0))]
+    
+def buildTree_2(data, used, n):
+    if len(data["Class"].unique()) == 1:
+        print(data["Class"].unique()[0], end = '')
+        return
+    else: 
+        rootVal = findSplit2(data, used)
+        if rootVal is not None:
+            used.add(rootVal)
+            leftSet, rightSet = buildNode(data, rootVal)
+            print("\n" + "| " * n + rootVal +  " = 1: ", end = '')
+            buildTree_2(leftSet, set(used), n+1)
+            print("\n" + "| " * n + rootVal + " = 0: ", end = '')
+            buildTree_2(rightSet, set(used), n+1)
+            return
+        return
+initialSet1 = set(["Class"])   
+initialSet2 = set(['Class'])
+print("First Tree\n")
+buildTree_1(binary, initialSet1, 0)
+print("\nSecond Tree")
+buildTree_2(binary, initialSet2, 0)
+binary[((binary["XK"] == 1) & (binary["XD"] == 1) & (binary["XS"] == 1) & (binary["XP"] == 1))]
 #    print(data_1)
 #    print(data_0)
     
-    
+#    
 #for attribute in list(binary)[:-1]:
-#    print("the information gain for " + str(attribute) + "=", information_Gain(binary, attribute))        
+#    print("the impurity gain for " + str(attribute) + "=", impurityGain(binary, attribute))        
     
     
 
