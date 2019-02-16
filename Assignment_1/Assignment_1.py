@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Feb  8 13:49:33 2019
-
 @author: XXZ180012
 """
 #import os
@@ -72,7 +71,7 @@ def findSplit(data, used, method):
     if len(check) == 0:
         return None
     maxGain = None
-    maxVal = float('-inf')
+    maxVal = 0
     for attribute in check:
         gain = method(data, attribute)
         if gain > maxVal:
@@ -93,32 +92,36 @@ def buildTree(data, method, used = set(["Class"])):
         rootVal = findSplit(data, used, method)
         if rootVal is not None:
             used.add(rootVal)
-            leftSet, rightSet = split(data, rootVal)
+            posSet, negSet = split(data, rootVal)
             root = TreeNode(rootVal)
-            root.pos = buildTree(leftSet, method, set(used))
-            root.neg = buildTree(rightSet, method, set(used))
+            if (not posSet.empty):
+                root.pos = buildTree(posSet, method, set(used))
+            if (not negSet.empty):
+                root.neg = buildTree(negSet, method, set(used))
             return root
         return None
     
 def printTree(root, n = 0):
-    if (type(root) == TreeNode.LeafNode):
+    if (type(root) == None):
+        return
+    elif (type(root) == TreeNode.LeafNode):
         print(root.value, end = '')
-    elif (type(root) == None):
-        print('None', end = "")
     elif (type(root) == TreeNode):
-        print("\n" + "| " * n + root.name +  " = 1 : ", end = '')
-        printTree(root.pos, n+1)
-        print("\n" + "| " * n + root.name +  " = 0 : ", end = '')
-        printTree(root.neg, n+1)
+        if (root.pos != None):
+            print("\n" + "| " * n + root.name +  " = 1 : ", end = '')
+            printTree(root.pos, n+1)
+        if (root.neg != None):
+            print("\n" + "| " * n + root.name +  " = 0 : ", end = '')
+            printTree(root.neg, n+1)
 
-
-root1 = buildTree(trainSet1, information_Gain)
-root2 = buildTree(trainSet2, information_Gain)
-print(root2)
-root3 = buildTree(trainSet1, impurity_Gain)
-root4 = buildTree(trainSet2, impurity_Gain)
-
-
+#root1 = buildTree(trainSet1, information_Gain)
+#root2 = buildTree(trainSet2, information_Gain)
+#root3 = buildTree(trainSet1, impurity_Gain)
+#root4 = buildTree(trainSet2, impurity_Gain)
+#print(root1)
+#print(root2)
+#print(root3)
+#print(root4)
 #def findSplit2(data, used):
 #    check = set(data) - used
 #    maxGain = None
@@ -170,7 +173,7 @@ root4 = buildTree(trainSet2, impurity_Gain)
 #buildTree_1(binary, initialSet1, 0)
 #print("\nSecond Tree")
 #buildTree_2(binary, initialSet2, 0)
-#binary[((binary["XK"] == 1) & (binary["XD"] == 1) & (binary["XS"] == 1) & (binary["XP"] == 1))]
+#trainSet2[((trainSet2["XI"] == 1) & (binary["XK"] == 1) & (binary["XD"] == 0) & (binary["XT"] == 1))]
 
 
 def post_Pruning(decisionTree, L, K):
