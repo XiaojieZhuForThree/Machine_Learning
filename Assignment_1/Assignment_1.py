@@ -17,6 +17,9 @@ import pandas as pd
 
 trainSet1 = pd.read_csv(r'C:\Users\XXZ180012\Desktop\Assignment_1\data_sets1\training_set.csv')
 trainSet2 = pd.read_csv(r'C:\Users\XXZ180012\Desktop\Assignment_1\data_sets2\training_set.csv')
+validateSet1 = pd.read_csv(r'C:\Users\XXZ180012\Desktop\Assignment_1\data_sets1\validation_set.csv')
+validateSet2 = pd.read_csv(r'C:\Users\XXZ180012\Desktop\Assignment_1\data_sets2\validation_set.csv')
+#    print(row)
 
 class TreeNode:
     def __init__(self, name):
@@ -112,12 +115,51 @@ def printTree(root, n = 0):
             printTree(root.pos, n+1)
         if (root.neg != None):
             print("\n" + "| " * n + root.name +  " = 0 : ", end = '')
-            printTree(root.neg, n+1)
+            printTree(root.neg, n+1) 
+      
+def nonLeafNode(root):
+    if (type(root) == TreeNode.LeafNode):
+        return []
+    elif (type(root) == None):
+        return []
+    elif (type(root) == TreeNode):
+        ans = [root]
+        if (root.pos != None):
+            ans += nonLeafNode(root.pos)
+        if (root.neg != None):    
+            ans += nonLeafNode(root.neg)
+        return ans
 
-#root1 = buildTree(trainSet1, information_Gain)
-#root2 = buildTree(trainSet2, information_Gain)
-#root3 = buildTree(trainSet1, impurity_Gain)
-#root4 = buildTree(trainSet2, impurity_Gain)
+def count(data, root, val):
+    return data[root].value_counts()[val]
+    
+def accuracy(root, data):
+    ans = 0
+    for row in data.iterrows():
+        test = row[1]
+        ans += testValue(root, test)
+    return ans / len(data)
+
+def testValue(root, row):
+    if (type(root) == TreeNode.LeafNode):
+        if (root.value == row['Class']):
+            return 1
+        else:
+            return 0
+    elif (type(root) is None):
+        return 0
+    elif (type(root) == TreeNode):
+        if (row[root.name] == 1):
+            return (testValue(root.pos, row))
+        else:
+            return (testValue(root.neg, row))
+    else:
+        return 0
+
+root1 = buildTree(trainSet1, information_Gain)
+root2 = buildTree(trainSet2, information_Gain)
+root3 = buildTree(trainSet1, impurity_Gain)
+root4 = buildTree(trainSet2, impurity_Gain)
 #print(root1)
 #print(root2)
 #print(root3)
@@ -176,7 +218,7 @@ def printTree(root, n = 0):
 #trainSet2[((trainSet2["XI"] == 1) & (binary["XK"] == 1) & (binary["XD"] == 0) & (binary["XT"] == 1))]
 
 
-def post_Pruning(decisionTree, L, K):
+def post_Pruning(decisionTree, training_data, validate_data, L, K):
     bestOne = decisionTree
     for i in range(1, L + 1):
         newTree = decisionTree
@@ -185,11 +227,11 @@ def post_Pruning(decisionTree, L, K):
             N = nonLeafNode(newTree)
             P = random.randint(1, len(N)+1)
             theOne = N[P-1]
-            if count(theOne, 0) > count(theOne, 1):
-                theOne = LeafNode(0)
+            if count(training_data, theOne, 0) > count(training_data, theOne, 1):
+                theOne = TreeNode.LeafNode(0)
             else:
-                theOne = LeafNode(1)
-        if (accuracy(newTree) > accuracy(bestOne)):
+                theOne = TreeNode.LeafNode(1)
+        if (accuracy(newTree, validate_data) > accuracy(bestOne, validate_data)):
            bestOne = newTree
     return bestOne
 
