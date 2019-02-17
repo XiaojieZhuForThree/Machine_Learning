@@ -15,24 +15,23 @@ import random
 import numpy as np
 import pandas as pd
 import copy
-#import matplotlib.pyplot as plt
-#import csv
-#from sklearn import tree, metrics
-
-#reader = csv.reader(open(r'C:\Users\XXZ180012\Desktop\Assignment_1\training_set.csv', "r"))
+##import matplotlib.pyplot as plt
+##import csv
+##from sklearn import tree, metrics
 #
-#variables = reader
-
-trainSet1 = pd.read_csv(r'C:\Users\XXZ180012\Desktop\Assignment_1\data_sets1\training_set.csv')
-trainSet2 = pd.read_csv(r'C:\Users\XXZ180012\Desktop\Assignment_1\data_sets2\training_set.csv')
-validateSet1 = pd.read_csv(r'C:\Users\XXZ180012\Desktop\Assignment_1\data_sets1\validation_set.csv')
-validateSet2 = pd.read_csv(r'C:\Users\XXZ180012\Desktop\Assignment_1\data_sets2\validation_set.csv')
-testSet1 = pd.read_csv(r'C:\Users\XXZ180012\Desktop\Assignment_1\data_sets1\test_set.csv')
-testSet2 = pd.read_csv(r'C:\Users\XXZ180012\Desktop\Assignment_1\data_sets2\test_set.csv')
-#    print(row)
-
-
-
+##reader = csv.reader(open(r'C:\Users\XXZ180012\Desktop\Assignment_1\training_set.csv', "r"))
+##
+##variables = reader
+#
+#trainSet1 = pd.read_csv('data_sets1\\training_set.csv', encoding='latin1')
+#trainSet2 = pd.read_csv(r'C:\Users\XXZ180012\Desktop\Assignment_1\data_sets2\training_set.csv')
+#validateSet1 = pd.read_csv(r'C:\Users\XXZ180012\Desktop\Assignment_1\data_sets1\validation_set.csv')
+#validateSet2 = pd.read_csv(r'C:\Users\XXZ180012\Desktop\Assignment_1\data_sets2\validation_set.csv')
+#testSet1 = pd.read_csv(r'C:\Users\XXZ180012\Desktop\Assignment_1\data_sets1\test_set.csv')
+#testSet2 = pd.read_csv(r'C:\Users\XXZ180012\Desktop\Assignment_1\data_sets2\test_set.csv')
+##    print(row)
+#
+#
 class TreeNode:
     def __init__(self, name):
         self.name = name
@@ -187,7 +186,7 @@ def testValue(root, row):
 
 def post_Pruning(decisionTree, validate_data, L, K):
     bestOne = decisionTree
-    for i in range(1, L + 1):
+    for i in range(1, L):
         newTree = copy.deepcopy(decisionTree)
         M = random.randint(1, K)
         for j in range(1, M + 1):            
@@ -211,23 +210,59 @@ def post_Pruning(decisionTree, validate_data, L, K):
     return bestOne
 
 
-tree1 = Tree(trainSet1, information_Gain)
-tree2 = Tree(trainSet2, information_Gain)
-tree3 = Tree(trainSet1, impurity_Gain)
-tree4 = Tree(trainSet2, impurity_Gain)
+def runProgram():
+    L = int(input("Please input the first integer used for post-pruning: "))
+    K = int(input("Please input the second integer used for post-pruning: "))
+    trainingSet = pd.read_csv(input("Please provide the address of the training set: "), encoding='latin1')
+    testSet = pd.read_csv(input("Please provide the address of the test set: "), encoding='latin1')
+    validateSet = pd.read_csv(input("Please provide the address of the validation set: "), encoding='latin1')
+    toPrint = input("to print the trees {yes,no}: ")
+    if toPrint == 'yes':
+        toPrint = True
+    else:
+        toPrint = False
+    print("\n\nBuilding the trees...")
+    Tree_InfoGain = Tree(trainingSet, information_Gain)
+    Tree_ImpuGain = Tree(trainingSet, impurity_Gain)
+    print("The accuracy of the tree with information gain on the testSet is: " + str(accuracy(Tree_InfoGain, testSet) * 100) + '%')
+    print("The accuracy of the tree with impurity gain on the testSet is: " + str(accuracy(Tree_ImpuGain, testSet) * 100) + '%')
+    print("\nPruning the trees...")
+    PrunedInfoTree = post_Pruning(Tree_InfoGain, validateSet, L, K)
+    PrunedImpuTree = post_Pruning(Tree_ImpuGain, validateSet, L, K)
+    print("The accuracy of the tree with information gain on the validation set is: " + str(accuracy(Tree_InfoGain, validateSet) * 100) + '%')
+    print("The accuracy of the pruned tree with information gain on the validation set is: " + str(accuracy(PrunedInfoTree, validateSet) * 100) + '%')
+    print("The accuracy of the tree with impurity gain on the validation set is: " + str(accuracy(Tree_ImpuGain, validateSet) * 100) + '%')
+    print("The accuracy of the pruned tree with impurity gain on the validation set is: " + str(accuracy(PrunedImpuTree, validateSet) * 100) + '%')
+    if toPrint == True:
+        print("\nThe Structure of the tree with information gain is : ")
+        print(Tree_InfoGain)
 
-print("\nthe accuracy of tree1 on validateSet1 is " + str(accuracy(tree1, validateSet1) * 100)+ "%")
-x = post_Pruning(tree1, validateSet1, 20, 30)
-print("after pruning, the accuracy of tree1 on validateSet1 is " + str(accuracy(x, validateSet1) * 100)+ "%")
+        print("\nThe Structure of the pruned tree with information gain is : ")
+        print(PrunedInfoTree)
 
-print("\nthe accuracy of tree2 on validateSet2 is " + str(accuracy(tree2, validateSet2) * 100)+ "%")
-x = post_Pruning(tree2, validateSet2, 20, 30)
-print("after pruning, the accuracy of tree2 on validateSet2 is " + str(accuracy(x, validateSet2)* 100)+ "%")
+        print("\nThe Structure of the tree with impurity gain is : ")
+        print(Tree_ImpuGain)
 
-print("\nthe accuracy of tree3 on validateSet1 is " + str(accuracy(tree3, validateSet1) * 100)+ "%")
-x = post_Pruning(tree3, validateSet1, 20, 30)
-print("after pruning, the accuracy of tree1 on validateSet1 is " + str(accuracy(x, validateSet1) * 100)+ "%")
+        print("\nThe Structure of the pruned tree with impurity gain is : ")
+        print(PrunedImpuTree)
 
-print("\nthe accuracy of tree4 on validateSet2 is " + str(accuracy(tree4, validateSet2) * 100)+ "%")
-x = post_Pruning(tree4, validateSet2, 20, 30)
-print("after pruning, the accuracy of tree4 on validateSet2 is " + str(accuracy(x, validateSet2) * 100)+ "%")
+#tree1 = Tree(trainSet1, information_Gain)
+#tree2 = Tree(trainSet2, information_Gain)
+#tree3 = Tree(trainSet1, impurity_Gain)
+#tree4 = Tree(trainSet2, impurity_Gain)
+#
+#print("\nthe accuracy of tree1 on validateSet1 is " + str(accuracy(tree1, validateSet1) * 100)+ "%")
+#x = post_Pruning(tree1, validateSet1, 20, 30)
+#print("after pruning, the accuracy of tree1 on validateSet1 is " + str(accuracy(x, validateSet1) * 100)+ "%")
+#
+#print("\nthe accuracy of tree2 on validateSet2 is " + str(accuracy(tree2, validateSet2) * 100)+ "%")
+#x = post_Pruning(tree2, validateSet2, 20, 30)
+#print("after pruning, the accuracy of tree2 on validateSet2 is " + str(accuracy(x, validateSet2)* 100)+ "%")
+#
+#print("\nthe accuracy of tree3 on validateSet1 is " + str(accuracy(tree3, validateSet1) * 100)+ "%")
+#x = post_Pruning(tree3, validateSet1, 20, 30)
+#print("after pruning, the accuracy of tree1 on validateSet1 is " + str(accuracy(x, validateSet1) * 100)+ "%")
+#
+#print("\nthe accuracy of tree4 on validateSet2 is " + str(accuracy(tree4, validateSet2) * 100)+ "%")
+#x = post_Pruning(tree4, validateSet2, 20, 30)
+#print("after pruning, the accuracy of tree4 on validateSet2 is " + str(accuracy(x, validateSet2) * 100)+ "%")
