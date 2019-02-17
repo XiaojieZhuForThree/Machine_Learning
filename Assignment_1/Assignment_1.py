@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+Spyder Editor
+
+This is a temporary script file.
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Created on Fri Feb  8 13:49:33 2019
 @author: XXZ180012
 """
@@ -7,6 +14,7 @@ Created on Fri Feb  8 13:49:33 2019
 import random
 import numpy as np
 import pandas as pd
+import copy
 #import matplotlib.pyplot as plt
 #import csv
 #from sklearn import tree, metrics
@@ -19,25 +27,40 @@ trainSet1 = pd.read_csv(r'C:\Users\XXZ180012\Desktop\Assignment_1\data_sets1\tra
 trainSet2 = pd.read_csv(r'C:\Users\XXZ180012\Desktop\Assignment_1\data_sets2\training_set.csv')
 validateSet1 = pd.read_csv(r'C:\Users\XXZ180012\Desktop\Assignment_1\data_sets1\validation_set.csv')
 validateSet2 = pd.read_csv(r'C:\Users\XXZ180012\Desktop\Assignment_1\data_sets2\validation_set.csv')
+testSet1 = pd.read_csv(r'C:\Users\XXZ180012\Desktop\Assignment_1\data_sets1\test_set.csv')
+testSet2 = pd.read_csv(r'C:\Users\XXZ180012\Desktop\Assignment_1\data_sets2\test_set.csv')
 #    print(row)
+
+
 
 class TreeNode:
     def __init__(self, name):
         self.name = name
         self.pos = None
         self.neg = None
+        self.parent = None
+        self.posClass = 0
+        self.negClass = 0
 
+        
+class LeafNode:
+    def __init__(self, value):
+        self.value = value
+            
+class Tree(TreeNode):
+    def __init__(self, data, method):
+        self.tree = buildTree(data, method, used = set(["Class"]))
+        self.posClass = 0
+        self.negClass = 0
     def __str__(self):
-        printTree(self)
+        printTree(self.tree)
         return ""
     
-    class LeafNode:
-        def __init__(self, value):
-            self.value = value
-
 def entropy(data):
     entropy = 0
     values = data["Class"].unique()
+    if len(values) == 1:
+        return 0
     for value in values:
         fraction =data["Class"].value_counts()[value]/len(data["Class"])
         entropy += -(fraction * np.log2(fraction))
@@ -69,15 +92,13 @@ def information_Gain(data, attribute):
         total_entropy -= len(data_value)*entropy(data_value)/len(data)
     return total_entropy
 
-def findSplit(data, used, method):
+def findSplit(data, method, used):
     check = set(data) - used
-    if len(check) == 0:
-        return None
+    maxVal = float(0)
     maxGain = None
-    maxVal = 0
     for attribute in check:
         gain = method(data, attribute)
-        if gain > maxVal:
+        if gain >= maxVal:
             maxVal = gain
             maxGain = attribute
     return maxGain
@@ -89,25 +110,32 @@ def split(data, attribute):
 
 
 def buildTree(data, method, used = set(["Class"])):
+    if data.empty:
+        return None
     if len(data["Class"].unique()) == 1:
-        return TreeNode.LeafNode(data['Class'].unique()[0])
+        return LeafNode(data['Class'].unique()[0])
     else: 
-        rootVal = findSplit(data, used, method)
+        rootVal = findSplit(data, method, used)
         if rootVal is not None:
             used.add(rootVal)
             posSet, negSet = split(data, rootVal)
             root = TreeNode(rootVal)
-            if (not posSet.empty):
-                root.pos = buildTree(posSet, method, set(used))
-            if (not negSet.empty):
-                root.neg = buildTree(negSet, method, set(used))
+            root.posClass = data["Class"].value_counts()[1]
+            root.negClass = data["Class"].value_counts()[0]
+            if (not posSet.empty and not negSet.empty):
+                posChild = buildTree(posSet, method, set(used))
+                negChild = buildTree(negSet, method, set(used))
+                root.pos = posChild
+                root.neg = negChild
+                negChild.parent = root
+                posChild.parent = root
             return root
         return None
     
 def printTree(root, n = 0):
     if (type(root) == None):
         return
-    elif (type(root) == TreeNode.LeafNode):
+    elif (type(root) == LeafNode):
         print(root.value, end = '')
     elif (type(root) == TreeNode):
         if (root.pos != None):
@@ -118,7 +146,7 @@ def printTree(root, n = 0):
             printTree(root.neg, n+1) 
       
 def nonLeafNode(root):
-    if (type(root) == TreeNode.LeafNode):
+    if (type(root) == LeafNode):
         return []
     elif (type(root) == None):
         return []
@@ -137,11 +165,11 @@ def accuracy(root, data):
     ans = 0
     for row in data.iterrows():
         test = row[1]
-        ans += testValue(root, test)
+        ans += testValue(root.tree, test)
     return ans / len(data)
 
 def testValue(root, row):
-    if (type(root) == TreeNode.LeafNode):
+    if (type(root) == LeafNode):
         if (root.value == row['Class']):
             return 1
         else:
@@ -156,100 +184,42 @@ def testValue(root, row):
     else:
         return 0
 
-root1 = buildTree(trainSet1, information_Gain)
-root2 = buildTree(trainSet2, information_Gain)
-root3 = buildTree(trainSet1, impurity_Gain)
-root4 = buildTree(trainSet2, impurity_Gain)
-#print(root1)
-#print(root2)
-#print(root3)
-#print(root4)
-#def findSplit2(data, used):
-#    check = set(data) - used
-#    maxGain = None
-#    maxVal = 0
-#    for attribute in check:
-#        iG = impurityGain(data, attribute)
-#        if iG > maxVal:
-#            maxVal = iG
-#            maxGain = attribute
-#    return maxGain       
-    
-#def buildTree_1(data, used, n):
-#    if len(data["Class"].unique()) == 1:
-#        print(data["Class"].unique()[0], end = '')
-#        return
-#    else: 
-#        rootVal = findSplit(data, used)
-#        if rootVal is not None:
-#            used.add(rootVal)
-#            leftSet, rightSet = buildNode(data, rootVal)
-#            print("\n" + "| " * n + rootVal +  " = 1: ", end = '')
-#            buildTree_1(leftSet, set(used), n+1)
-#            print("\n" + "| " * n + rootVal + " = 0: ", end = '')
-#            buildTree_1(rightSet, set(used), n+1)
-#            return
-#        return
-#    
-#def buildTree_2(data, used, n):
-#    if len(data["Class"].unique()) == 1:
-#        print(data["Class"].unique()[0], end = '')
-#        return
-#    else: 
-#        rootVal = findSplit2(data, used)
-#        if rootVal is not None:
-#            used.add(rootVal)
-#            leftSet, rightSet = buildNode(data, rootVal)
-#            print("\n" + "| " * n + rootVal +  " = 1: ", end = '')
-#            buildTree_2(leftSet, set(used), n+1)
-#            print("\n" + "| " * n + rootVal + " = 0: ", end = '')
-#            buildTree_2(rightSet, set(used), n+1)
-#            return
-#        return
 
-
-
-#initialSet1 = set(["Class"])   
-#initialSet2 = set(['Class'])
-#print("First Tree\n")
-#buildTree_1(binary, initialSet1, 0)
-#print("\nSecond Tree")
-#buildTree_2(binary, initialSet2, 0)
-#trainSet2[((trainSet2["XI"] == 1) & (binary["XK"] == 1) & (binary["XD"] == 0) & (binary["XT"] == 1))]
-
-
-def post_Pruning(decisionTree, training_data, validate_data, L, K):
+def post_Pruning(decisionTree, validate_data, L, K):
     bestOne = decisionTree
     for i in range(1, L + 1):
-        newTree = decisionTree
-        M = random.randint(1, K+1)
-        for j in range(1, M+1):
-            N = nonLeafNode(newTree)
-            P = random.randint(1, len(N)+1)
-            theOne = N[P-1]
-            if count(training_data, theOne, 0) > count(training_data, theOne, 1):
-                theOne = TreeNode.LeafNode(0)
-            else:
-                theOne = TreeNode.LeafNode(1)
+        newTree = copy.deepcopy(decisionTree)
+        M = random.randint(1, K)
+        for j in range(1, M + 1):            
+            N = nonLeafNode(newTree.tree)
+            if (len(N) > 1):
+                P = random.randint(1, len(N)-1)
+                theOne = N[P]
+                replace = None
+                if theOne.posClass < theOne.negClass:
+                    replace = LeafNode(0)
+                else:
+                    replace = LeafNode(1)
+                if (theOne.parent == None):
+                    newTree = replace
+                elif (theOne.parent.pos == theOne):
+                    theOne.parent.pos = replace
+                else:
+                    theOne.parent.neg = replace
         if (accuracy(newTree, validate_data) > accuracy(bestOne, validate_data)):
            bestOne = newTree
     return bestOne
 
-#    print(data_1)
-#    print(data_0)
-    
-#    
-#for attribute in list(binary)[:-1]:
-#    print("the impurity gain for " + str(attribute) + "=", impurityGain(binary, attribute))        
-    
-    
 
-
-#def test_split(index, value, dataset):
-#	left, right = list(), list()
-#	for row in dataset:
-#		if row[index] < value:
-#			left.append(row)
-#		else:
-#			right.append(row)
-#	return left, right
+tree1 = Tree(trainSet1, information_Gain)
+tree2 = Tree(trainSet2, information_Gain)
+tree3 = Tree(trainSet1, impurity_Gain)
+tree4 = Tree(trainSet2, impurity_Gain)
+#root5 = Tree(validateSet1, information_Gain)
+#root6 = Tree(validateSet2, information_Gain)
+#root7 = Tree(validateSet1, impurity_Gain)
+#root8 = Tree(validateSet2, impurity_Gain)
+#root9 = Tree(testSet1, information_Gain)
+#root10 = Tree(testSet2, information_Gain)
+#root11 = Tree(testSet1, impurity_Gain)
+#root12 = Tree(testSet2, impurity_Gain)
