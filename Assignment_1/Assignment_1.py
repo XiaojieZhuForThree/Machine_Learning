@@ -215,6 +215,22 @@ tree1 = Tree(trainSet1, information_Gain)
 tree2 = Tree(trainSet2, information_Gain)
 tree3 = Tree(trainSet1, impurity_Gain)
 tree4 = Tree(trainSet2, impurity_Gain)
+
+print("the accuracy of tree1 on validateSet1 is " + str(accuracy(tree1, validateSet1) * 100)+ "%")
+x = post_Pruning(tree1, validateSet1, 20, 30)
+print("after pruning, the accuracy of tree1 on validateSet1 is " + str(accuracy(x, validateSet1) * 100)+ "%")
+
+print("the accuracy of tree2 on validateSet2 is " + str(accuracy(tree2, validateSet2) * 100)+ "%")
+x = post_Pruning(tree2, validateSet2, 20, 30)
+print("after pruning, the accuracy of tree2 on validateSet2 is " + str(accuracy(x, validateSet2)* 100)+ "%")
+
+print("the accuracy of tree3 on validateSet1 is " + str(accuracy(tree3, validateSet1) * 100)+ "%")
+x = post_Pruning(tree3, validateSet1, 20, 30)
+print("after pruning, the accuracy of tree1 on validateSet1 is " + str(accuracy(x, validateSet1) * 100)+ "%")
+
+print("the accuracy of tree4 on validateSet2 is " + str(accuracy(tree4, validateSet2) * 100)+ "%")
+x = post_Pruning(tree4, validateSet2, 20, 30)
+print("after pruning, the accuracy of tree4 on validateSet2 is " + str(accuracy(x, validateSet2) * 100)+ "%")
 #root5 = Tree(validateSet1, information_Gain)
 #root6 = Tree(validateSet2, information_Gain)
 #root7 = Tree(validateSet1, impurity_Gain)
