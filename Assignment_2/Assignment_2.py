@@ -7,5 +7,7 @@ Created on Tue Mar 12 13:51:15 2019
 import numpy as np
 spam = {}
 ham = {}
-def trainMultiNomialNB(document, classes):
-    
+def trainMultinomialNB(spam, ham, classes):
+    # what kind of values do you want to return?
+    for word in spam:
+        
