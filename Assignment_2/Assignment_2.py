@@ -102,7 +102,7 @@ def applyMultinomialNB(classes, V, prior, condprob, doc):
             ans = key
     return ans
 
-def testFunction(folder):
+def testFunction_MultinomialNB(folder):
     right = 0
     numOfFiles = countDocs(testHamAddr) + countDocs(testSpamAddr)
     V, prior, condprob = trainMultinomialNB(classes, trainRoot)
@@ -116,10 +116,19 @@ def testFunction(folder):
                     right += 1
     return right / numOfFiles
     
-testFunction(testRoot)
+testFunction_MultinomialNB(testRoot)
+
+
+
+    
 
 V, prior, condprob = trainMultinomialNB(classes, trainRoot)
 
 extractVocabulary(trainHamAddr)
 extractVocabulary(trainSpamAddr)
- 
+    
+    
+    
+    
+    
+     
