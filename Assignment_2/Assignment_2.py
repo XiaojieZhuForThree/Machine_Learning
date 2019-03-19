@@ -11,8 +11,12 @@ import os
 spam = {}
 ham = {}
 
-hamAddr = r'C:\Users\zxj\Desktop\test\ham' 
-spamAddr = r'C:\Users\zxj\Desktop\test\spam'
+trainHamAddr = r'C:\Users\zxj\Desktop\train\ham'
+trainSpamAddr = r'C:\Users\zxj\Desktop\train\spam'
+
+testHamAddr = r'C:\Users\zxj\Desktop\test\ham' 
+testSpamAddr = r'C:\Users\zxj\Desktop\test\spam'
+
 testRoot = r'C:\Users\zxj\Desktop\test'   
 trainRoot = r'C:\Users\zxj\Desktop\train'
 
@@ -48,9 +52,10 @@ def countVocabulary(folder):
             for word in temp:
                 if word not in dic:
                     dic[word] = 1
-                dic[word] += 1
+                else:
+                    dic[word] += 1
     return dic
-#    return len(files)
+
 
 def countDocs(folder):
     files = os.listdir(folder)
@@ -62,10 +67,10 @@ def countTokensOfTerm(text, v):
     return 0
 
 
-def trainMultinomialNB(classes):
+def trainMultinomialNB(classes, trainRoot):
     prior = {}
-    V = extractVocabulary(hamAddr).union(extractVocabulary(spamAddr))
-    N = countDocs(hamAddr) + countDocs(spamAddr)
+    V = extractVocabulary(trainHamAddr).union(extractVocabulary(trainSpamAddr))
+    N = countDocs(trainHamAddr) + countDocs(trainSpamAddr)
     condprob = {}
     for t in V:
         condprob[t] = {}
@@ -97,24 +102,24 @@ def applyMultinomialNB(classes, V, prior, condprob, doc):
             ans = key
     return ans
 
-
-
-
-
-
-
-
-
-
-
-
-V, prior, condprob = trainMultinomialNB(classes)
-
-extractVocabulary(hamAddr)
-extractVocabulary(spamAddr)
+def testFunction(folder):
+    right = 0
+    numOfFiles = countDocs(testHamAddr) + countDocs(testSpamAddr)
+    V, prior, condprob = trainMultinomialNB(classes, trainRoot)
+    for cls in classes:
+        files = os.listdir(folder + '/' + cls)
+        for file in files:
+            with open(folder + '/' + cls + '/' + file, 'r', encoding='utf-8', errors='ignore') as doc:
+                doc = doc.read().lower().replace('\n', ' ').split(' ')
+                ans = applyMultinomialNB(classes, V, prior, condprob, doc)
+                if ans == cls:
+                    right += 1
+    return right / numOfFiles
     
-    
-    
-    
-    
-     
+testFunction(testRoot)
+
+V, prior, condprob = trainMultinomialNB(classes, trainRoot)
+
+extractVocabulary(trainHamAddr)
+extractVocabulary(trainSpamAddr)
+ 
