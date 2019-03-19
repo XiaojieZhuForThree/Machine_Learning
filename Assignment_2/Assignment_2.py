@@ -11,13 +11,13 @@ import os
 spam = {}
 ham = {}
 
-hamAddr = 'C:\Users\zxj\Desktop\test\ham' 
-spamAddr = 'C:\Users\zxj\Desktop\test\spam'
+hamAddr = r'C:\Users\zxj\Desktop\test\ham' 
+spamAddr = r'C:\Users\zxj\Desktop\test\spam'
 root = r'C:\Users\zxj\Desktop\test'   
 
 classes = {'ham', 'spam'}
 
-def extraVocabulary(folder):
+def extractVocabulary(folder):
     vocab = set()
     files = os.listdir(folder)
     for file in files:
@@ -28,9 +28,9 @@ def extraVocabulary(folder):
     return vocab
     
         
-def countVocabulary(folder, dic):
+def countVocabulary(folder):
     files = os.listdir(folder)
-    
+    dic = {}
     for file in files:
         with open(folder + '/' + file, 'r', encoding='utf-8', errors='ignore') as doc:
             temp = doc.read().lower().replace('\n', ' ').split(' ')
@@ -38,7 +38,7 @@ def countVocabulary(folder, dic):
                 if word not in dic:
                     dic[word] = 1
                 dic[word] += 1
-    return
+    return dic
 #    return len(files)
 
 def countDocs(folder):
@@ -50,26 +50,35 @@ def countTokensOfTerm(text, v):
         return text[v]
     return 0
 
-extraVocabulary(r'C:\Users\zxj\Desktop\test\ham', ham)       
-extraVocabulary(r'C:\Users\zxj\Desktop\test\spam', spam) 
 
-def trainMultinomialNB(classes, documents):
+def trainMultinomialNB(classes):
     prior = {}
-    V = extraVocabulary(hamAddr)
+    V = extractVocabulary(hamAddr).union(extractVocabulary(spamAddr))
     N = countDocs(hamAddr) + countDocs(spamAddr)
     condprob = {}
+    for t in V:
+        condprob[t] = {}
     for cls in classes:
-        N_cls = countDocs(root + "'\'" + cls)
+        N_cls = countDocs(root + '/' + cls)
         prior[cls] = N_cls / N
+        text = countVocabulary(root + '/' + cls)
+        total = 0
+        for i in V:
+            total += countTokensOfTerm(text, i) + 1
         for t in V:
-            condprob[t] = {}
             Tct = countTokensOfTerm(text, t)
-            condprob[t][cls] = (Tct + 1) / sum(text[i] + 1 for i in text)
-    return V, prior, condprob        
+            condprob[t][cls] = (Tct + 1) / total
+    return V, prior, condprob 
+
+V, prior, condprob = trainMultinomialNB(classes)
+
+
+
+extractVocabulary(hamAddr)
+extractVocabulary(spamAddr)
     
     
     
     
     
-    
-    
+     
