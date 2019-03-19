@@ -13,9 +13,11 @@ ham = {}
 
 hamAddr = r'C:\Users\zxj\Desktop\test\ham' 
 spamAddr = r'C:\Users\zxj\Desktop\test\spam'
-root = r'C:\Users\zxj\Desktop\test'   
+testRoot = r'C:\Users\zxj\Desktop\test'   
+trainRoot = r'C:\Users\zxj\Desktop\train'
 
-classes = {'ham', 'spam'}
+
+classes = ['ham', 'spam']
 
 def extractVocabulary(folder):
     vocab = set()
@@ -26,6 +28,15 @@ def extractVocabulary(folder):
             for word in temp:
                 vocab.add(word)
     return vocab
+
+def extractTokensFromDoc(V, doc):
+    tokens = set()
+    for word in doc:
+        if word in V:
+            tokens.add(word)
+    return tokens
+
+
     
         
 def countVocabulary(folder):
@@ -59,9 +70,9 @@ def trainMultinomialNB(classes):
     for t in V:
         condprob[t] = {}
     for cls in classes:
-        N_cls = countDocs(root + '/' + cls)
+        N_cls = countDocs(trainRoot + '/' + cls)
         prior[cls] = N_cls / N
-        text = countVocabulary(root + '/' + cls)
+        text = countVocabulary(trainRoot + '/' + cls)
         total = 0
         for i in V:
             total += countTokensOfTerm(text, i) + 1
@@ -70,9 +81,34 @@ def trainMultinomialNB(classes):
             condprob[t][cls] = (Tct + 1) / total
     return V, prior, condprob 
 
+
+def applyMultinomialNB(classes, V, prior, condprob, doc):
+    W = extractTokensFromDoc(V, doc)
+    scores = {}
+    for cls in classes:
+        scores[cls] = np.log(prior[cls])
+        for t in W:
+            scores[cls] += np.log(condprob[t][cls])
+    ans = classes[0]
+    score = scores[ans]
+    for key in scores:
+        if scores[key] > score:
+            score = scores[key]
+            ans = key
+    return ans
+
+
+
+
+
+
+
+
+
+
+
+
 V, prior, condprob = trainMultinomialNB(classes)
-
-
 
 extractVocabulary(hamAddr)
 extractVocabulary(spamAddr)
