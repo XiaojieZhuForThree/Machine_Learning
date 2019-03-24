@@ -8,14 +8,14 @@ import os
 import sys
 import numpy as np
 
-trainHamAddr = r'C:\Users\zxj\Desktop\train\ham'
-trainSpamAddr = r'C:\Users\zxj\Desktop\train\spam'
+trainHamAddr = r'C:\Users\zxj\Desktop\Assignment_2\train\ham'
+trainSpamAddr = r'C:\Users\zxj\Desktop\Assignment_2\train\spam'
 
-testHamAddr = r'C:\Users\zxj\Desktop\test\ham' 
-testSpamAddr = r'C:\Users\zxj\Desktop\test\spam'
+testHamAddr = r'C:\Users\zxj\Desktop\Assignment_2\test\ham' 
+testSpamAddr = r'C:\Users\zxj\Desktop\Assignment_2\test\spam'
 
-testRoot = r'C:\Users\zxj\Desktop\test'   
-trainRoot = r'C:\Users\zxj\Desktop\train'
+testRoot = r'C:\Users\zxj\Desktop\Assignment_2\test'   
+trainRoot = r'C:\Users\zxj\Desktop\Assignment_2\train'
 
 classes = ['ham', 'spam']
 stopwords = ['a',
@@ -204,7 +204,7 @@ Vocabulary = []
 noStop_Vocabulary = []
 
 learning_rate = 0.001
-iteration = 1000
+iteration = 200
 lam = 0
 
 def addFile(holder, address, cls):
@@ -303,11 +303,10 @@ def run_Program(trainHamAddr, trainSpamAddr, testHamAddr, testSpamAddr, lamInp):
         if logisticRegression(i, word_weights_after) == testFiles[i]:
             right_after += 1             
 
-    print ("Accuracy before filtering stop words: "+ str(right_before * 100 / len(testFiles)) + '%')
-    print ("Accuracy after filtering stop words: "+ str(right_after * 100 / len(testFiles)) + '%')
+    print ("The accuracy before filtering the stop words: "+ str(right_before * 100 / len(testFiles)) + '%')
+    print ("The accuracy after filtering the stop words: "+ str(right_after * 100 / len(testFiles)) + '%')
 
-#if __name__ == '__main__':
-#    main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
+#run_Program(trainHamAddr, trainSpamAddr, testHamAddr, testSpamAddr, 0.5)
 
 if __name__ == '__main__':
     if(len(sys.argv) != 6):
