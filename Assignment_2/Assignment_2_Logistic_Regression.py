@@ -5,172 +5,339 @@ Created on Thu Mar 21 00:56:33 2019
 @author: zxj
 """
 import os
-import math
+import sys
+import numpy as np
 
+trainHamAddr = r'C:\Users\zxj\Desktop\train\ham'
+trainSpamAddr = r'C:\Users\zxj\Desktop\train\spam'
 
-class LogisticRegression:
-    TRAIN_PATH = 'train'
-    TEST_PATH = 'test'
-    learning_rate = 0.001
-    WEIGHTS = {}
+testHamAddr = r'C:\Users\zxj\Desktop\test\ham' 
+testSpamAddr = r'C:\Users\zxj\Desktop\test\spam'
 
-    def __init__(self, _lambda, iterations, use_stop_words):
-        self.ham_words_map = {}
-        self.spam_words_map = {}
-        self.map_list = []
-        self.class_list = []
-        self.words_space_set = None
-        self.stop_words = []
-        self.use_stop_words = bool(use_stop_words)
+testRoot = r'C:\Users\zxj\Desktop\test'   
+trainRoot = r'C:\Users\zxj\Desktop\train'
 
-        self._lambda = _lambda
-        self.iterations = iterations
+classes = ['ham', 'spam']
+stopwords = ['a',
+ 'about',
+ 'above',
+ 'after',
+ 'again',
+ 'against',
+ 'all',
+ 'am',
+ 'an',
+ 'and',
+ 'any',
+ 'are',
+ "aren't",
+ 'as',
+ 'at',
+ 'be',
+ 'because',
+ 'been',
+ 'before',
+ 'being',
+ 'below',
+ 'between',
+ 'both',
+ 'but',
+ 'by',
+ "can't",
+ 'cannot',
+ 'could',
+ "couldn't",
+ 'did',
+ "didn't",
+ 'do',
+ 'does',
+ "doesn't",
+ 'doing',
+ "don't",
+ 'down',
+ 'during',
+ 'each',
+ 'few',
+ 'for',
+ 'from',
+ 'further',
+ 'had',
+ "hadn't",
+ 'has',
+ "hasn't",
+ 'have',
+ "haven't",
+ 'having',
+ 'he',
+ "he'd",
+ "he'll",
+ "he's",
+ 'her',
+ 'here',
+ "here's",
+ 'hers',
+ 'herself',
+ 'him',
+ 'himself',
+ 'his',
+ 'how',
+ "how's",
+ 'i',
+ "i'd",
+ "i'll",
+ "i'm",
+ "i've",
+ 'if',
+ 'in',
+ 'into',
+ 'is',
+ "isn't",
+ 'it',
+ "it's",
+ 'its',
+ 'itself',
+ "let's",
+ 'me',
+ 'more',
+ 'most',
+ "mustn't",
+ 'my',
+ 'myself',
+ 'no',
+ 'nor',
+ 'not',
+ 'of',
+ 'off',
+ 'on',
+ 'once',
+ 'only',
+ 'or',
+ 'other',
+ 'ought',
+ 'our',
+ 'ours\tourselves',
+ 'out',
+ 'over',
+ 'own',
+ 'same',
+ "shan't",
+ 'she',
+ "she'd",
+ "she'll",
+ "she's",
+ 'should',
+ "shouldn't",
+ 'so',
+ 'some',
+ 'such',
+ 'than',
+ 'that',
+ "that's",
+ 'the',
+ 'their',
+ 'theirs',
+ 'them',
+ 'themselves',
+ 'then',
+ 'there',
+ "there's",
+ 'these',
+ 'they',
+ "they'd",
+ "they'll",
+ "they're",
+ "they've",
+ 'this',
+ 'those',
+ 'through',
+ 'to',
+ 'too',
+ 'under',
+ 'until',
+ 'up',
+ 'very',
+ 'was',
+ "wasn't",
+ 'we',
+ "we'd",
+ "we'll",
+ "we're",
+ "we've",
+ 'were',
+ "weren't",
+ 'what',
+ "what's",
+ 'when',
+ "when's",
+ 'where',
+ "where's",
+ 'which',
+ 'while',
+ 'who',
+ "who's",
+ 'whom',
+ 'why',
+ "why's",
+ 'with',
+ "won't",
+ 'would',
+ "wouldn't",
+ 'you',
+ "you'd",
+ "you'll",
+ "you're",
+ "you've",
+ 'your',
+ 'yours',
+ 'yourself',
+ 'yourselves']
+stopV = set(stopwords)
+word_weights_before = {'theta0' : 0}
+word_weights_after = {'theta0' : 0}
 
-    def train(self):
-        spam_count, spam_list = self.initList(self.TRAIN_PATH + '/spam')
-        ham_count, ham_list = self.initList(self.TRAIN_PATH + '/ham')
+trainFiles = {}
+testFiles = {}
 
-        self.words_space_set = set(spam_list + ham_list)
+vocabDic = {}
 
-        # delete empty string
-        if '' in self.words_space_set:
-            self.words_space_set.remove('')
+Vocabulary = []
+noStop_Vocabulary = []
 
-        # use stop_words
-        if self.use_stop_words:
-            self.stop_words = self.readStopWords()
-            for word in self.stop_words:
-                if word in self.words_space_set:
-                    self.words_space_set.remove(word)
+learning_rate = 0.001
+iteration = 1000
+lam = 0
 
-        self.WEIGHTS['zero'] = 0.0
-        for i in self.words_space_set:
-            self.WEIGHTS[i] = 0.0
+def addFile(holder, address, cls):
+    files = os.listdir(address)
+    for file in files:
+        with open(address + '/' + file, 'r', encoding='utf-8', errors='ignore') as doc:
+            temp = doc.read().lower().replace('\n', ' ')
+        holder[temp] = cls
 
-        self.initMapList(self.TRAIN_PATH + '/spam', 'spam')
-        self.initMapList(self.TRAIN_PATH + '/ham', 'ham')
+def extractVocabulary(folder):
+    vocab = set()
+    files = os.listdir(folder)
+    for file in files:
+        with open(folder + '/' + file, 'r', encoding='utf-8', errors='ignore') as doc:
+            temp = doc.read().lower().replace('\n', ' ').split(' ')
+            for word in temp:
+                vocab.add(word)
+    return vocab
 
-        for ite in range(self.iterations):
-            print('iteration %d' % (ite))
-            for word in self.WEIGHTS:
-                sum = 0.0
-                for i in range(len(self.class_list)):
-                    instance = self.map_list[i]
-
-                    if word in instance:
-                        class_name = self.class_list[i]
-                        y_val = 1 if class_name == 'spam' else 0
-                        prob = self.cal(instance, 'spam')
-                        sum += float(instance[word] * (y_val - prob))
-
-                self.WEIGHTS[word] += (
-                        self.learning_rate * sum - float(self._lambda) * self.learning_rate * self.WEIGHTS[word])
-
-    def classify(self):
-
-        spam_count, spam_list = self.initList(self.TEST_PATH + '/spam')
-        ham_count, ham_list = self.initList(self.TEST_PATH + '/ham')
-
-        # clear train data
-        self.class_list = []
-        self.map_list = []
-        self.words_space_set = None
-
-        self.words_space_set = set(spam_list + ham_list)
-
-        # delete empty string
-        if '' in self.words_space_set:
-            self.words_space_set.remove('')
-
-        # use stop_words
-        if self.use_stop_words:
-            self.stop_words = self.readStopWords()
-            for word in self.stop_words:
-                if word in self.words_space_set:
-                    self.words_space_set.remove(word)
-
-        self.initMapList(self.TEST_PATH + '/spam', 'spam')
-        self.initMapList(self.TEST_PATH + '/ham', 'ham')
-
-        spam_success = 0
-        ham_success = 0
-        total_success = 0
-
-        for i in range(len(self.class_list)):
-            instance = self.map_list[i]
-            class_name = self.class_list[i]
-            return_type = self.judgeMailType(instance)
-            if return_type == class_name:
-                total_success += 1
-                if class_name == 'spam':
-                    spam_success += 1
-                else:
-                    ham_success += 1
-
-        spam_success_ratio = spam_success * 1.0 / spam_count
-        ham_success_ratio = ham_success * 1.0 / ham_count
-        total_success_ratio = total_success * 1.0 / (spam_count + ham_count)
-
-        return spam_success_ratio, ham_success_ratio, total_success_ratio
-
-    def judgeMailType(self, instance):
-        spam_prop = self.cal(instance, 'spam')
-        ham_prop = 1 - spam_prop
-        if spam_prop > ham_prop:
-            return 'spam'
+def countVocabulary(file):
+    dictionary = {}
+    for word in file.split(' '):
+        if word not in dictionary:
+            dictionary[word] = 1
         else:
-            return 'ham'
+            dictionary[word] += 1
+    return dictionary
 
-    # calculate weight
-    def cal(self, instance, class_name):
-        weight = self.WEIGHTS['zero']
+def getCondProb(cls, word_weights, file):
+    words = countVocabulary(file)
+    if cls == classes[0]:
+        sumHam = word_weights['theta0']        
+        for i in words:
+            if i in word_weights:
+                sumHam += word_weights[i] * words[i]
+        return 1 / (1 + np.exp(sumHam))
 
-        for word in instance:
-            if word not in self.WEIGHTS:
-                self.WEIGHTS[word] = 0.0
-            weight += self.WEIGHTS[word] * float(instance[word])
+    else:
+        sumSpam = word_weights['theta0']
+        for i in words:
+            if i in word_weights:
+                sumSpam += word_weights[i] * words[i]
+        return np.exp(sumSpam) / (1 + np.exp(sumSpam))
 
-        exp_weight = math.exp(float(weight))
+def weightTrain(trainFiles, word_weights, iteration, lam):
+    for x in range(iteration):
+        for weight in word_weights:
+            gain = 0
+            for file in trainFiles:
 
-        sigmoid = exp_weight / (1 + exp_weight)
+                dic = vocabDic[file]
+                if trainFiles[file] == classes[1]:
+                    y = 1
+                else:
+                    y = 0
 
-        return sigmoid if class_name == 'spam' else (1 - sigmoid)
+                if weight in dic:
+                    gain += dic[weight] * (y - getCondProb(classes[1], word_weights, trainFiles[file]))
+            word_weights[weight] += ((learning_rate * gain) - (learning_rate * lam * word_weights[weight]))
 
-    def initList(self, folder):
-        file_content = os.listdir(folder)
+def logisticRegression(file, word_weights):
+    scoreHam = getCondProb(classes[0], word_weights, file)
+    scoreSpam = getCondProb(classes[1], word_weights, file)
+    if scoreSpam > scoreHam:
+        return classes[1]
+    return classes[0]
 
-        if not file_content:
-            return
+#def test():
+#    addFile(trainFiles, trainHamAddr, classes[0])
+#    addFile(trainFiles, trainSpamAddr, classes[1])
+#    addFile(testFiles, testHamAddr, classes[0])
+#    addFile(testFiles, testSpamAddr, classes[1])
+#    
+#    V = extractVocabulary(trainHamAddr).union(extractVocabulary(trainSpamAddr))
+#    noStopV = V - stopV
+#    
+#    for i in V:
+#        word_weights_before[i] = 0    
+#    
+#    for i in noStopV:
+#        word_weights_after[i] = 0
+#    
+#    for file in trainFiles:
+#        vocabDic[file] = countVocabulary(file)
+#    
+#    weightTrain(trainFiles, word_weights_before, 8, 0.3) 
+#    weightTrain(trainFiles, word_weights_after, 8, 0.3)
+#    
+#    right_before = 0
+#    right_after = 0
+#    for i in testFiles:
+#        if logisticRegression(i, word_weights_before) == testFiles[i]:
+#            right_before += 1  
+#            
+#        if logisticRegression(i, word_weights_after) == testFiles[i]:
+#            right_after += 1             
+#
+#    print ("Accuracy before filtering stop words: "+ str(right_before * 100 / len(testFiles)) + '%')
+#    print ("Accuracy after filtering stop words: "+ str(right_after * 100 / len(testFiles)) + '%')
+    
+def main(trainHamAddr, trainSpamAddr, testHamAddr, testSpamAddr, lamInp):
+    
+    addFile(trainFiles, trainHamAddr, classes[0])
+    addFile(trainFiles, trainSpamAddr, classes[1])
+    addFile(testFiles, testHamAddr, classes[0])
+    addFile(testFiles, testSpamAddr, classes[1])
+    
+    V = extractVocabulary(trainHamAddr).union(extractVocabulary(trainSpamAddr))
+    noStopV = V - stopV
+    
+    for i in V:
+        word_weights_before[i] = 0    
+    
+    for i in noStopV:
+        word_weights_after[i] = 0
+    
+    for file in trainFiles:
+        vocabDic[file] = countVocabulary(file)
+    
+    weightTrain(trainFiles, word_weights_before, 8, 0.3) 
+    weightTrain(trainFiles, word_weights_after, 8, 0.3)
+    
+    right_before = 0
+    right_after = 0
+    for i in testFiles:
+        if logisticRegression(i, word_weights_before) == testFiles[i]:
+            right_before += 1  
+            
+        if logisticRegression(i, word_weights_after) == testFiles[i]:
+            right_after += 1             
 
-        msg = []
-        for file_name in file_content:
-            with open(folder + '/' + file_name, 'r', encoding='utf-8', errors='ignore') as f:
-                temp = f.read().lower().replace('\n', ' ').split(' ')
-                msg = msg + temp
+    print ("Accuracy before filtering stop words: "+ str(right_before * 100 / len(testFiles)) + '%')
+    print ("Accuracy after filtering stop words: "+ str(right_after * 100 / len(testFiles)) + '%')
 
-        return len(file_content), msg
-
-    def initMapList(self, folder, class_type):
-        file_content = os.listdir(folder)
-
-        if not file_content:
-            return
-
-        for file_name in file_content:
-            tempMap = {}
-            with open(folder + '/' + file_name, 'r', encoding='utf-8', errors='ignore') as f:
-                temp = f.read().lower().replace('\n', ' ').split(' ')
-                for word in temp:
-                    if word in self.words_space_set:
-                        if word not in tempMap:
-                            tempMap[word] = 0
-                        tempMap[word] += 1
-
-            self.map_list.append(tempMap)
-            self.class_list.append(class_type)
-
-    def readStopWords(self):
-        with open('stop_words.txt') as f:
-            temp = f.read().lower().replace('\n', ' ').split(' ')
-
-        return temp
+if __name__ == '__main__':
+    main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
