@@ -277,34 +277,7 @@ def applyMultinomialNB(classes, V, prior, condprob, doc):
             ans = key
     return ans
 
-def testFunction_MultinomialNB():
-    right_before = 0
-    right_after = 0
-    numOfFiles = countDocs(testHamAddr) + countDocs(testSpamAddr)
-    V, prior, condprob = trainMultinomialNB(classes, trainRoot)
-    noStopV = V - stopV
-    
-    for cls in classes:
-        if cls == 'ham':
-            testRoot = testHamAddr
-        else:
-            testRoot = testSpamAddr
-            
-        files = os.listdir(testRoot)
-        for file in files:
-            with open(testRoot + '/' + file, 'r'\
-                      , encoding='utf-8', errors='ignore') as doc:
-                doc = doc.read().lower().replace('\n', ' ').split(' ')
-                ans_before = applyMultinomialNB(classes, V, prior, condprob, doc)
-                ans_after = applyMultinomialNB(classes, noStopV, prior, condprob, doc)
-                if ans_before == cls:
-                    right_before += 1
-                if ans_after == cls:
-                    right_after += 1
-    print ("Accuracy before filtering stop words: "+ str(right_before * 100 / numOfFiles) + '%')
-    print ("Accuracy after filtering stop words: "+ str(right_after * 100 / numOfFiles) + '%')
-
-def main(trainHamAddr, trainSpamAddr, testHamAddr, testSpamAddr):
+def run_Program(trainHamAddr, trainSpamAddr, testHamAddr, testSpamAddr):
     
     right_before = 0
     right_after = 0
@@ -331,11 +304,21 @@ def main(trainHamAddr, trainSpamAddr, testHamAddr, testSpamAddr):
                     right_after += 1
     print ("Accuracy before filtering stop words: "+ str(right_before * 100 / numOfFiles) + '%')
     print ("Accuracy after filtering stop words: "+ str(right_after * 100 / numOfFiles) + '%')
-
+    
 if __name__ == '__main__':
-    main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
+    if(len(sys.argv) != 5):
+        sys.exit(".\program <trainHamAddr> <trainSpamAddr> <testHamAddr> <testSpamAddr>")
+    else:
+        trainHamAddr = sys.argv[1]
+        trainSpamAddr = sys.argv[2]
+        testHamAddr = sys.argv[3]
+        testSpamAddr = sys.argv[4]
+        run_Program(trainHamAddr, trainSpamAddr, testHamAddr, testSpamAddr)
+
+#if __name__ == '__main__':
+#    main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
     
-testFunction_MultinomialNB()
+#testFunction_MultinomialNB()
 
 #V, prior, condprob = trainMultinomialNB(classes, trainRoot)
 #

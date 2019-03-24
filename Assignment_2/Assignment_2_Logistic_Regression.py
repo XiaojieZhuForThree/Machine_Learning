@@ -271,41 +271,8 @@ def logisticRegression(file, word_weights):
     if scoreSpam > scoreHam:
         return classes[1]
     return classes[0]
-
-#def test():
-#    addFile(trainFiles, trainHamAddr, classes[0])
-#    addFile(trainFiles, trainSpamAddr, classes[1])
-#    addFile(testFiles, testHamAddr, classes[0])
-#    addFile(testFiles, testSpamAddr, classes[1])
-#    
-#    V = extractVocabulary(trainHamAddr).union(extractVocabulary(trainSpamAddr))
-#    noStopV = V - stopV
-#    
-#    for i in V:
-#        word_weights_before[i] = 0    
-#    
-#    for i in noStopV:
-#        word_weights_after[i] = 0
-#    
-#    for file in trainFiles:
-#        vocabDic[file] = countVocabulary(file)
-#    
-#    weightTrain(trainFiles, word_weights_before, 8, 0.3) 
-#    weightTrain(trainFiles, word_weights_after, 8, 0.3)
-#    
-#    right_before = 0
-#    right_after = 0
-#    for i in testFiles:
-#        if logisticRegression(i, word_weights_before) == testFiles[i]:
-#            right_before += 1  
-#            
-#        if logisticRegression(i, word_weights_after) == testFiles[i]:
-#            right_after += 1             
-#
-#    print ("Accuracy before filtering stop words: "+ str(right_before * 100 / len(testFiles)) + '%')
-#    print ("Accuracy after filtering stop words: "+ str(right_after * 100 / len(testFiles)) + '%')
     
-def main(trainHamAddr, trainSpamAddr, testHamAddr, testSpamAddr, lamInp):
+def run_Program(trainHamAddr, trainSpamAddr, testHamAddr, testSpamAddr, lamInp):
     
     addFile(trainFiles, trainHamAddr, classes[0])
     addFile(trainFiles, trainSpamAddr, classes[1])
@@ -339,5 +306,17 @@ def main(trainHamAddr, trainSpamAddr, testHamAddr, testSpamAddr, lamInp):
     print ("Accuracy before filtering stop words: "+ str(right_before * 100 / len(testFiles)) + '%')
     print ("Accuracy after filtering stop words: "+ str(right_after * 100 / len(testFiles)) + '%')
 
+#if __name__ == '__main__':
+#    main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
+
 if __name__ == '__main__':
-    main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
+    if(len(sys.argv) != 6):
+        sys.exit(".\program <trainHamAddr> <trainSpamAddr> <testHamAddr> <testSpamAddr> <lambda>")
+    else:
+        trainHamAddr = sys.argv[1]
+        trainSpamAddr = sys.argv[2]
+        testHamAddr = sys.argv[3]
+        testSpamAddr = sys.argv[4]
+        lamInp = (float)(sys.argv[5])
+        run_Program(trainHamAddr, trainSpamAddr, testHamAddr, testSpamAddr, lamInp)
+        
